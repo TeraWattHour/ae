@@ -1,7 +1,12 @@
 #include "lexer.h"
+#include "parser.h"
+
+#define DATASTRUCTURES_DA_IMPLEMENTATION
+#include "dynamic_array.h"
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 char *read_file(char *filename) {
   FILE* file = fopen(filename, "r");
@@ -32,11 +37,18 @@ char *read_file(char *filename) {
 int main() {
   char *source = read_file("test/main.ae");
 
-  lexer_t lexer = lexer_init("test/main.vt", source);
-  int ret = lexer_next_token(&lexer);
-  while (ret > 0) {
-    token_t token = lexer.token;
-    printf("%d: %.*s\n", token.kind, token.end - token.start, token.start);
-    ret = lexer_next_token(&lexer);
+  lexer_t lexer = lexer_init("test/main.ae", source);
+  token_t *tokens = da_alloc(token_t);
+  bool lexing_failed = lexer_lex(&lexer, &tokens);
+
+  printf("here: %d\n", da_len(tokens));
+
+  for (int i = 0; i < da_len(tokens); i++) {
+    printf("%d %.*s\n", tokens[i].kind, sv_print(tokens[i].content));
   }
+
+  // parser_t parser = parser_init(&lexer);
+  // statement_t *stmt = parser_next_statement(&parser);
+
+  // printf("%.*s :: %.*s\n", sv_print(stmt->as.const_bind.rhs->as.identifier), sv_print(stmt->as.const_bind.lhs->as.identifier));
 }
